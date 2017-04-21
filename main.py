@@ -65,19 +65,19 @@ class Control:
         self.MAX_TARGET_VALUE = 4000
 
     def make_sin(self,time):
-        target_value = self.raising + math.sin(time * self.frequent / 2000 * math.pi) * self.amplitude
+        target_value = self.raising - math.cos(time * self.frequent / 2 * math.pi) * self.amplitude + self.amplitude
         if 0 > target_value or target_value > self.MAX_TARGET_VALUE :
             target_value = math.floor(target_value / self.MAX_TARGET_VALUE) * self.MAX_TARGET_VALUE
-        return target_value
+        return int(target_value)
 
     def make_square(self, time):
-        target_value = self.raising +  self.amplitude if time / 1000 / self.frequent < self.frequent / 2 else self.amplitude
+        target_value = self.raising +  self.amplitude if time / self.frequent < self.frequent / 2 else self.amplitude
         if 0 > target_value or target_value > self.MAX_TARGET_VALUE :
             target_value = math.floor(target_value / self.MAX_TARGET_VALUE) * self.MAX_TARGET_VALUE
         return target_value
 
     def get_out_sin_str(self, time1, time2, time3):
-        return '{0:04x}'.format(self.make_square(time1)) + '{0:04x}'.format(self.make_square(time2)) + '{0:04x}'.format(self.make_square(time3))
+        return '{0:04x}'.format(self.make_sin(time1)) + '{0:04x}'.format(self.make_sin(time2)) + '{0:04x}'.format(self.make_sin(time3))
 
     def get_out_square_str(self, time1, time2, time3):
         return '{0:04x}'.format(self.make_square(time1)) + '{0:04x}'.format(self.make_square(time2)) + '{0:04x}'.format(self.make_square(time3))
@@ -120,7 +120,7 @@ class SASerial:
 
     def main(self):
         with ReaderThread(self.ser, self.PrintLines) as protocol:
-            control = Control(0.3,1,0)
+            control = Control(0.3, 2000, 0)
             sleep(1)
 
             for roop in range(0,100):
