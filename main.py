@@ -7,8 +7,7 @@ import time
 import math
 
 #/dev/tty.wchusbserial1410
-
-SERIAL_PORT_NAME = '/dev/tty.wchusbserial1420'
+SERIAL_PORT_NAME = 'COM5' if os.name == 'nt' else '/dev/tty.wchusbserial1420'
 SERIAL_BAUD_RATE = 38400
 
 FREQUENT = 200
@@ -35,13 +34,37 @@ class PrintLines(LineReader):
 
 
 class Control():
+    def __init__(self, frequent, amplitude, raising):
+        """
+        :param frequent: 周波数[Hz] 
+        :param amplitude: 振幅[edge]
+        :param raising: 初期位置（下限でのロータリーエンコーダーの値を0とした時の，動作の最下値）[edge]
+        """
 
-    def makeSin(self,time):
-        return math.sin(2*math.pi*time*FREQUENT)
+        self.frequent = frequent
+        self.max_inclination = max_inclination
+        self.amplitude = amplitude
+        self.raising = raising
+        self.MAX_TARGET_VALUE = 4000
 
-    def getOutStr(self,time):
-        s = self.makeSin(time)
-        return str(s)+str(s)+str(s)
+    def make_sin(self,time):
+        target_value = self.raising + math.sin(time * self.frequent / 2000 * math.pi) * self.amplitude
+        if 0 > target_value or target_value > self.MAX_TARGET_VALUE :
+            target_value = math.floor(target_value / self.MAX_TARGET_VALUE) * self.MAX_TARGET_VALUE
+        return hex(target_value)
+
+    def make_square(self, time):
+        target_value = self.raising +  self.amplitude if time / 1000 / frequent < frequent / 2 else self.amplitude
+        if 0 > target_value or target_value > self.MAX_TARGET_VALUE :
+            target_value = math.floor(value / self.MAX_TARGET_VALUE) * self.MAX_TARGET_VALUE
+        return hex(target_value)
+
+    def get_out_sin_str(self, time1, time2, time3):
+        return  self.make_square(time1) + self.make_square(time2) + self.make_square(time1)
+
+    def get_out_square_str(self, time1, time2, time3):
+        return self.make_square(time1) + self.make_square(time2) + self.make_square(time1)
+
 
 class SASerial():
 
