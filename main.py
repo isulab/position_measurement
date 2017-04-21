@@ -5,9 +5,10 @@ import sys
 import traceback
 import time
 import math
+import os
 
 #/dev/tty.wchusbserial1410
-SERIAL_PORT_NAME = 'COM5' if os.name == 'nt' else '/dev/tty.wchusbserial1420'
+SERIAL_PORT_NAME = 'COM3' if os.name == 'nt' else '/dev/tty.wchusbserial1420'
 SERIAL_BAUD_RATE = 38400
 
 FREQUENT = 200
