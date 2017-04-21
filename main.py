@@ -107,9 +107,9 @@ class SASerial:
             sys.stdout.write('line received: {}\n'.format(repr(data)))
             recieve = repr(data)
             if len(recieve) >= 14:
-                axis1 = int(recieve[1:5], 16)
-                axis2 = int(recieve[5:9], 16)
-                axis3 = int(recieve[9:13], 16)
+                axis1 = int(str(recieve[32:36]), 10)
+                axis2 = int(str(recieve[40:44]), 10)
+                axis3 = int(str(recieve[48:52]), 10)
                 global timer
                 self.writer.writeRow(timer.getTimeString(), axis1, axis2, axis3)
 
@@ -129,8 +129,8 @@ class SASerial:
                 axis1 = control.make_sin(now)
                 axis2 = control.make_sin(now)
                 axis3 = control.make_sin(now)
-#                outvalue = control.get_out_sin_str(now,now,now)
-                outvalue = control.get_out_square_str(now, now, now)
+                outvalue = control.get_out_sin_str(now,now,now)
+#                outvalue = control.get_out_square_str(now, now, now)
                 protocol.write_line(outvalue)
                 self.writer.writeRow(timer.getTimeString(), axis1, axis2, axis3)
                 usleep(100)
