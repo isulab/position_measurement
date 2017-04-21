@@ -3,8 +3,10 @@ from serial.threaded import LineReader
 from serial.threaded import ReaderThread
 import sys
 import traceback
+from time import sleep
 import time
 import math
+import csv
 
 #/dev/tty.wchusbserial1410
 
@@ -13,28 +15,7 @@ SERIAL_BAUD_RATE = 38400
 
 FREQUENT = 200
 
-class PrintLines(LineReader):
-    TERMINATOR = b'\n'
-
-    def connection_made(self, transport):
-        super(PrintLines, self).connection_made(transport)
-        sys.stdout.write('port opened\n')
-        self.transport.serial.reset_input_buffer()
-
-    #def data_received(self, data):
-        #print('data received', repr(data))
-
-    def handle_line(self, data):
-        print('handle_line')
-        sys.stdout.write('line received: {}\n'.format(repr(data)))
-
-    def connection_lost(self, exc):
-        if exc:
-            traceback.print_exc(exc)
-        sys.stdout.write('port closed\n')
-
-
-class Control():
+class Control:
 
     def makeSin(self,time):
         return math.sin(2*math.pi*time*FREQUENT)
@@ -43,19 +24,69 @@ class Control():
         s = self.makeSin(time)
         return str(s)+str(s)+str(s)
 
-class SASerial():
+class CSVWriter:
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.file = open(filename, 'a')
+        self.writer = csv.writer(self.file, lineterminator='\n')  # 改行コード（\n）を指定しておく
+
+    def writeRow(self, time, axis1, axis2, axis3):
+        self.writer.writerow([time, axis1, axis2, axis3])
+
+    def __del__(self):
+        self.file.close()
+
+
+class TimeMeasure:
+    def __init__(self):
+        self.starttime = time.time()
+
+    def getTime(self):
+        return str(time.time() - self.starttime)
+
+class SASerial:
 
     def __init__(self,port,baudrate):
         self.ser = serial.serial_for_url(port, baudrate=baudrate, timeout=5)
 
+    class PrintLines(LineReader):
+        TERMINATOR = b'\n'
+
+        def connection_made(self, transport):
+            super(SASerial.PrintLines, self).connection_made(transport)
+            sys.stdout.write('port opened\n')
+            self.transport.serial.reset_input_buffer()
+            self.writer = CSVWriter("data.csv")
+
+            # def data_received(self, data):
+            # print('data received', repr(data))
+
+        def handle_line(self, data):
+            # print('handle_line')
+            sys.stdout.write('line received: {}\n'.format(repr(data)))
+            recieve = repr(data)
+            if len(recieve) >= 14:
+                axis1 = int(recieve[1:5], 16)
+                axis2 = int(recieve[5:9], 16)
+                axis3 = int(recieve[9:13], 16)
+                global timer
+                self.writer.writeRow(timer.getTime(), axis1, axis2, axis3)
+
+
+        def connection_lost(self, exc):
+            if exc:
+                traceback.print_exc(exc)
+            sys.stdout.write('port closed\n')
+
     def main(self):
-        with ReaderThread(self.ser, PrintLines) as protocol:
+        with ReaderThread(self.ser, self.PrintLines) as protocol:
             control = Control()
+            sleep(1)
+
             for time in range(0,100):
-                outline = control.getOutStr(time)
-                protocol.write_line(outline)
+                protocol.write_line("AAAABBBBCCCC")
 
-
-
+timer = TimeMeasure()
 ser = SASerial(SERIAL_PORT_NAME,SERIAL_BAUD_RATE)
 ser.main()
