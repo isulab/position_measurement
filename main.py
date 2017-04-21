@@ -14,7 +14,6 @@ usleep = lambda x: sleep(x/1000000.0)
 
 SERIAL_PORT_NAME = 'COM3' if os.name == 'nt' else '/dev/tty.wchusbserial1420'
 SERIAL_BAUD_RATE = 38400
-MAX_INCLINATION = 15
 
 '''
 CSV書き込みを扱うクラス
@@ -61,7 +60,6 @@ class Control:
         """
 
         self.frequent = frequent
-        self.max_inclination = MAX_INCLINATION
         self.amplitude = amplitude
         self.raising = raising
         self.MAX_TARGET_VALUE = 4000
